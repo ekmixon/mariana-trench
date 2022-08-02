@@ -56,10 +56,7 @@ if __name__ == "__main__":
         _sync_configuration_files(fake_root)
         _sync_binary(fake_root)
 
-        os.environ["PATH"] = "%s:%s" % (
-            os.fspath(fake_root / "bin"),
-            os.environ["PATH"],
-        )
+        os.environ["PATH"] = f'{os.fspath(fake_root / "bin")}:{os.environ["PATH"]}'
         sys.path.insert(0, os.fspath(fake_root))
 
         # pyre-ignore

@@ -34,13 +34,12 @@ def _method_string(method: Union[str, Dict[str, Any]]) -> str:
 
     name = method["name"]
 
-    parameter_type_overrides = method.get("parameter_type_overrides")
-    if parameter_type_overrides:
+    if parameter_type_overrides := method.get("parameter_type_overrides"):
         parameter_type_overrides = (
             f"{override['parameter']}: {override['type']}"
             for override in parameter_type_overrides
         )
-        name += "[%s]" % ", ".join(parameter_type_overrides)
+        name += f'[{", ".join(parameter_type_overrides)}]'
 
     return name
 
@@ -74,16 +73,15 @@ def index(results_directory: str = ".") -> None:
     global __index
     __index = {}
 
-    paths = []
-    for path in os.listdir(results_directory):
-        if not path.startswith("model@"):
-            continue
-
-        paths.append(os.path.join(results_directory, path))
+    paths = [
+        os.path.join(results_directory, path)
+        for path in os.listdir(results_directory)
+        if path.startswith("model@")
+    ]
 
     with multiprocessing.Pool() as pool:
         for index in pool.imap_unordered(_index_file, paths):
-            __index.update(index)
+            __index |= index
 
     print(f"Indexed {len(__index)} models")
 

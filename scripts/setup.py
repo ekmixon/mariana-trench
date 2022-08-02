@@ -100,7 +100,7 @@ def _copy_package(build_root: Path, output_path: Path) -> None:
     dist_directory = build_root / "dist"
     wheel = list(dist_directory.glob("**/*.whl"))
     source_distribution = list(dist_directory.glob("**/*.tar.gz"))
-    if not len(wheel) == 1 and not len(source_distribution) == 1:
+    if len(wheel) != 1 and len(source_distribution) != 1:
         raise AssertionError(f"Unexpected files found in `{build_root}/dist`.")
     source_distribution, wheel = source_distribution[0], wheel[0]
 
@@ -157,11 +157,15 @@ def _rsync_files(
     arguments: List[str],
 ) -> None:
     LOG.info(f"Copying `{source_directory}` into `{target_directory}`")
-    command = ["rsync", "--quiet"]
-    command.extend(arguments)
-    command.extend(["--filter=" + filter_string for filter_string in filters])
-    command.append(str(source_directory))
-    command.append(str(target_directory))
+    command = [
+        "rsync",
+        "--quiet",
+        *arguments,
+        *[f"--filter={filter_string}" for filter_string in filters],
+        str(source_directory),
+        str(target_directory),
+    ]
+
     subprocess.run(command, check=True)
 
 

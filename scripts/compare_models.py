@@ -13,17 +13,18 @@ from pathlib import Path
 
 def _recursive_sort(data: object) -> object:
     if isinstance(data, list):
-        list_sorted = []
-        for item in data:
-            # The dump is necessary because list elements might be dictionaries
-            # Hence we first stringify all elements regardless of types and then sort them
-            list_sorted.append(json.dumps(_recursive_sort(item), sort_keys=True))
+        list_sorted = [
+            json.dumps(_recursive_sort(item), sort_keys=True) for item in data
+        ]
+
         list_sorted.sort()
 
         # Ensure contents in the return value are json values (instead of strings)
-        results = []
-        for item in list_sorted:
-            results.append(json.loads(item, object_pairs_hook=OrderedDict))
+        results = [
+            json.loads(item, object_pairs_hook=OrderedDict)
+            for item in list_sorted
+        ]
+
         return results
     elif isinstance(data, dict):
         # sort keys

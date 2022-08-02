@@ -47,7 +47,7 @@ def _directory_exists(path: str) -> str:
         raise argparse.ArgumentTypeError(f"Path `{path}` is not a directory.")
     path = os.path.realpath(path)
     if path and path[-1] != "/":
-        path = path + "/"
+        path = f"{path}/"
     return path
 
 
@@ -174,21 +174,18 @@ def _build_executable_target(target: str, *, mode: Optional[str] = None) -> Path
 
 
 def _get_analysis_binary(arguments: argparse.Namespace) -> Path:
-    from_arguments = arguments.binary
-    if from_arguments:
+    if from_arguments := arguments.binary:
         # Use the user-provided binary.
         return _check_executable(Path(from_arguments))
 
-    buck_target = configuration.BINARY_BUCK_TARGET
-    if buck_target:
+    if buck_target := configuration.BINARY_BUCK_TARGET:
         # Build the mariana-trench binary from buck (facebook-only).
         return _build_executable_target(
             buck_target,
             mode=arguments.build,
         )
 
-    path_command = configuration.BINARY_PATH_COMMAND
-    if path_command:
+    if path_command := configuration.BINARY_PATH_COMMAND:
         # Find the mariana-trench binary in the path (open-source).
         command = shutil.which(path_command)
         if command is None:
@@ -201,7 +198,7 @@ def _get_analysis_binary(arguments: argparse.Namespace) -> Path:
 def _desugar_jar_file(jar_path: Path) -> Path:
     LOG.info(f"Desugaring `{jar_path}`...")
     desugar_tool = _build_target(none_throws(configuration.DESUGAR_BUCK_TARGET))
-    desugared_jar_file = jar_path.parent / (jar_path.stem + "-desugared.jar")
+    desugared_jar_file = jar_path.parent / f"{jar_path.stem}-desugared.jar"
     output = subprocess.run(
         [
             "java",
@@ -561,8 +558,11 @@ def main() -> None:
         os.environ["TRACE"] = ",".join(trace_settings)
 
         if arguments.log_method:
-            for method in arguments.log_method:
-                options.append("--log-method=%s" % method.strip())
+            options.extend(
+                f"--log-method={method.strip()}"
+                for method in arguments.log_method
+            )
+
         if arguments.dump_class_hierarchies:
             options.append("--dump-class-hierarchies")
         if arguments.dump_overrides:
